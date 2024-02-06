@@ -18,7 +18,7 @@ source("estimateFS.R")
 fileNumber <- as.numeric(Slurm_env(x='SLURM_ARRAY_TASK_ID'))
 
 args = commandArgs(trailingOnly=TRUE)
-args=c("Ab_G1","FALSE","only_S","")
+# args=c("Ab","FALSE","only_S","Mult")
 data <- args[1]
 bootstrap <- as.logical(args[2])
 type = args[3]
