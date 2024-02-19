@@ -1,16 +1,21 @@
-estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
+estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50){
   temporaryDirectory = paste0("/beegfs/agabaut/tmp",fileNumber,"_",data)
   if(dir.exists(temporaryDirectory)){unlink(temporaryDirectory,recursive = T)}
   dir.create(temporaryDirectory)
 
-  pathToSim = paste0("Model/IreneModel",files,"/Simulation/simulatedData_",data,".csv")
+  if(Nbr_ind==50){
+    pathToSim = paste0("Model/IreneModel",files,"/Simulation/simulatedData_",data,".csv")
+  }else if(Nbr_ind==15){
+    pathToSim = paste0("Model/IreneModel",files,"/Simulation/simulatedData15_",data,".csv")
+  }
+
 
   sim = read.csv(pathToSim) %>%
     filter(rep==fileNumber) %>%
     select(ID,TIME,obs,obsid)
 
-  if(file.exists(paste0("Results/Results",files,"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))){
-    load(paste0("Results/Results",files,"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
+  if(file.exists(paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))){
+    load(paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
     doRes = !exists("res")
     if(exists("resBoot")){
       bootMISS = setdiff(1:200,as.numeric(stringr::str_remove_all(names(resBoot),"boot_")))
@@ -38,13 +43,17 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
     }
     # alpha
     if(data!="Ab"){
-      if(files=="" | files=="2" | data %in% c("Ab_G1","Ab_G1_G3")){
+      if(files=="" | files=="2" | data %in% c("Ab_G1","Ab_G1_G3","Ab_G2","Ab_G1_G2")){
         if(data=="Ab_G1"){
           setIndividualParameterVariability(alpha_1=FALSE)
-        }else if(data=="Ab_G1_G3"){
-          setIndividualParameterVariability(alpha_1=FALSE,alpha_3=FALSE)
         }else if(data=="Ab_G2"){
           setIndividualParameterVariability(alpha_2=FALSE)
+        }else if(data=="Ab_G3"){
+          setIndividualParameterVariability(alpha_3=FALSE)
+        }else if(data=="Ab_G1_G2"){
+          setIndividualParameterVariability(alpha_1=FALSE,alpha_2=FALSE)
+        }else if(data=="Ab_G1_G3"){
+          setIndividualParameterVariability(alpha_1=FALSE,alpha_3=FALSE)
         }
       }else if(files %in% c("Mult","Mu","Mu_i")){
         setIndividualParameterVariability(alpha_1=FALSE,alpha_2=FALSE,alpha_3=F,alpha_4=F,alpha_5=F)
@@ -73,10 +82,15 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
           delta_V_pop=list(initialValue=2.7,method="FIXED"),
           delta_S_pop=list(initialValue=0.0322,method="FIXED"),
           delta_Ab_pop=list(initialValue=0.08,method="FIXED"))
+      }else if(files=="MP"){
+        setPopulationParameterInformation(
+          delta_V_pop=list(initialValue=2.7,method="FIXED"),
+          delta_S_pop=list(initialValue=0.008992836,method="FIXED"),
+          delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
       }
     }else if(type=="only_S"){
       setIndividualParameterVariability(delta_S=FALSE)
-      if(files %in% c("","Mult","Mu","Mu_i")){
+      if(files %in% c("","Mult","Mu","Mu_i","MP")){
         setPopulationParameterInformation(
           delta_V_pop=list(initialValue=2.7,method="FIXED"),
           delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
@@ -97,6 +111,11 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
           fM1_pop=list(initialValue=4.5,method="FIXED"),
           delta_V_pop=list(initialValue=2.7,method="FIXED"),
           delta_Ab_pop=list(initialValue=0.08,method="FIXED"))
+      }else if(files=="MP"){
+        setPopulationParameterInformation(
+          fM1_pop=list(initialValue=4.132851589,method="FIXED"),
+          delta_V_pop=list(initialValue=2.7,method="FIXED"),
+          delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
       }
     }
 
@@ -107,8 +126,12 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
       setErrorModel(yyAB="constant",yyG1="constant")
     }else if(data=="Ab_G1_G3"){
       setErrorModel(yyAB="constant",yyG1="constant",yyG3="constant")
+    }else if(data=="Ab_G1_G2"){
+      setErrorModel(yyAB="constant",yyG1="constant",yyG2="constant")
     }else if(data=="Ab_G2"){
       setErrorModel(yyAB="constant",yyG2="constant")
+    }else if(data=="Ab_G3"){
+      setErrorModel(yyAB="constant",yyG3="constant")
     }else if(data=="Ab_G1-5"){
       setErrorModel(yyAB="constant",yyG1="constant",yyG2="constant",yyG3="constant",yyG4="constant",yyG5="constant")
     }
@@ -182,15 +205,23 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
 
       # individual variability
       setIndividualParameterVariability(delta_V=FALSE,delta_Ab=FALSE) # never
+      #mu
+      if(files=="Mu"){
+        setIndividualParameterVariability(mu_1=F,mu_2=F,mu_3=F,mu_4=F,mu_5=F) # never
+      }
       # alpha
       if(data!="Ab"){
-        if(files=="" | files=="2" | data %in% c("Ab_G1","Ab_G1_G3")){
+        if(files=="" | files=="2" | data %in% c("Ab_G1","Ab_G1_G3","Ab_G2","Ab_G1_G2")){
           if(data=="Ab_G1"){
             setIndividualParameterVariability(alpha_1=FALSE)
-          }else if(data=="Ab_G1_G3"){
-            setIndividualParameterVariability(alpha_1=FALSE,alpha_3=FALSE)
           }else if(data=="Ab_G2"){
             setIndividualParameterVariability(alpha_2=FALSE)
+          }else if(data=="Ab_G3"){
+            setIndividualParameterVariability(alpha_3=FALSE)
+          }else if(data=="Ab_G1_G2"){
+            setIndividualParameterVariability(alpha_1=FALSE,alpha_2=FALSE)
+          }else if(data=="Ab_G1_G3"){
+            setIndividualParameterVariability(alpha_1=FALSE,alpha_3=FALSE)
           }
         }else if(files %in% c("Mult","Mu","Mu_i")){
           setIndividualParameterVariability(alpha_1=FALSE,alpha_2=FALSE,alpha_3=F,alpha_4=F,alpha_5=F)
@@ -198,10 +229,6 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
             setIndividualParameterVariability(mu_1=FALSE,mu_2=FALSE,mu_3=F,mu_4=F,mu_5=F)
           }
         }
-      }
-      # fM1
-      if(files=="2"){
-        setPopulationParameterInformation()
       }
       # delta
       if(type=="default"){
@@ -223,10 +250,15 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
             delta_V_pop=list(initialValue=2.7,method="FIXED"),
             delta_S_pop=list(initialValue=0.0322,method="FIXED"),
             delta_Ab_pop=list(initialValue=0.08,method="FIXED"))
+        }else if(files=="MP"){
+          setPopulationParameterInformation(
+            delta_V_pop=list(initialValue=2.7,method="FIXED"),
+            delta_S_pop=list(initialValue=0.008992836,method="FIXED"),
+            delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
         }
       }else if(type=="only_S"){
         setIndividualParameterVariability(delta_S=FALSE)
-        if(files %in% c("","Mult","Mu","Mu_i")){
+        if(files %in% c("","Mult","Mu","Mu_i","MP")){
           setPopulationParameterInformation(
             delta_V_pop=list(initialValue=2.7,method="FIXED"),
             delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
@@ -247,6 +279,11 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
             fM1_pop=list(initialValue=4.5,method="FIXED"),
             delta_V_pop=list(initialValue=2.7,method="FIXED"),
             delta_Ab_pop=list(initialValue=0.08,method="FIXED"))
+        }else if(files=="MP"){
+          setPopulationParameterInformation(
+            fM1_pop=list(initialValue=4.132851589,method="FIXED"),
+            delta_V_pop=list(initialValue=2.7,method="FIXED"),
+            delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
         }
       }
 
@@ -257,8 +294,12 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
         setErrorModel(yyAB="constant",yyG1="constant")
       }else if(data=="Ab_G1_G3"){
         setErrorModel(yyAB="constant",yyG1="constant",yyG3="constant")
+      }else if(data=="Ab_G1_G2"){
+        setErrorModel(yyAB="constant",yyG1="constant",yyG2="constant")
       }else if(data=="Ab_G2"){
         setErrorModel(yyAB="constant",yyG2="constant")
+      }else if(data=="Ab_G3"){
+        setErrorModel(yyAB="constant",yyG3="constant")
       }else if(data=="Ab_G1-5"){
         setErrorModel(yyAB="constant",yyG1="constant",yyG2="constant",yyG3="constant",yyG4="constant",yyG5="constant")
       }
@@ -313,8 +354,8 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files=""){
 
   unlink(temporaryDirectory,recursive=TRUE)
   if(bootstrap){
-    save(res,resBoot,file=paste0("Results/Results",files,"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
+    save(res,resBoot,file=paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
   }else{
-    save(res,file=paste0("Results/Results",files,"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
+    save(res,file=paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
   }
 }

@@ -1,8 +1,8 @@
 library(dplyr)
 library(flextable)
 ## DATA INFORMATION
-data = "Ab_G1_G3"
-type="default"
+data = "Ab"
+type="only_S"
 files="Mult"
 
 load(paste0("Results/Results",files,"_",data,"/bootstrap",type,"/estim_1.RData"))
@@ -125,259 +125,284 @@ if("countNA" %in% colnames(stats_estim)){
 if(files==""){
   if(data=="Ab"){
     tex2_names = c(
-      " {f_M}_1 ",
-      " \\delta_S ",
-      " \\theta ",
-      " \\delta_{Ab} ",
-      " \\omega_{{f_M}_1} ",
-      " \\omega_{\\delta_S} ",
-      " \\omega_\\theta ",
-      " \\sigma_{AB} "
+     "{f_M}_1",
+     "\\delta_S",
+     "\\theta",
+     "\\delta_{Ab}",
+     "\\omega_{{f_M}_1}",
+     "\\omega_{\\delta_S}",
+     "\\omega_\\theta",
+     "\\sigma_{AB}"
     )
   }else if(data=="Ab_G1"){
     tex2_names = c(
-      " {f_M}_1 ",
-      " \\delta_S ",
-      " \\theta ",
-      " \\delta_{Ab} ",
-      " \\alpha_1 ",
-      " \\omega_{{f_M}_1} ",
-      " \\omega_{\\delta_S} ",
-      " \\omega_\\theta ",
-      " \\sigma_{AB} ",
-      " \\sigma_{G1} "
+     "{f_M}_1",
+     "\\delta_S",
+     "\\theta",
+     "\\delta_{Ab}",
+     "\\alpha_1",
+     "\\omega_{{f_M}_1}",
+     "\\omega_{\\delta_S}",
+     "\\omega_\\theta",
+     "\\sigma_{AB}",
+     "\\sigma_{G1}"
     )
   }else if(data=="Ab_G2"){
     tex2_names = c(
-      " {f_M}_1 ",
-      " \\delta_S ",
-      " \\theta ",
-      " \\delta_{Ab} ",
-      " \\alpha_2 ",
-      " \\omega_{{f_M}_1} ",
-      " \\omega_{\\delta_S} ",
-      " \\omega_\\theta ",
-      " \\sigma_{AB} ",
-      " \\sigma_{G2} "
+     "{f_M}_1",
+     "\\delta_S",
+     "\\theta",
+     "\\delta_{Ab}",
+     "\\alpha_2",
+     "\\omega_{{f_M}_1}",
+     "\\omega_{\\delta_S}",
+     "\\omega_\\theta",
+     "\\sigma_{AB}",
+     "\\sigma_{G2}"
     )
   }else{
     tex2_names = c(
-      " {f_M}_1 ",
-      " \\delta_S ",
-      " \\theta ",
-      " \\delta_{Ab} ",
-      " \\alpha_1 ",
-      " \\alpha_2 ",
-      " \\omega_{{f_M}_1} ",
-      " \\omega_{\\delta_S} ",
-      " \\omega_\\theta ",
-      " \\sigma_{AB} ",
-      " \\sigma_{G1} ",
-      " \\sigma_{G2} "
+     "{f_M}_1",
+     "\\delta_S",
+     "\\theta",
+     "\\delta_{Ab}",
+     "\\alpha_1",
+     "\\alpha_2",
+     "\\omega_{{f_M}_1}",
+     "\\omega_{\\delta_S}",
+     "\\omega_\\theta",
+     "\\sigma_{AB}",
+     "\\sigma_{G1}",
+     "\\sigma_{G2}"
     )
   }
   if(type=="fixed_delta"){
-    tex2_names <- setdiff(tex2_names,c(" \\delta_{Ab} "," \\delta_S "," \\omega_{\\delta_S} "))
+    tex2_names <- setdiff(tex2_names,c("\\delta_{Ab}","\\delta_S","\\omega_{\\delta_S}"))
   }else if(type=="default"){
-    tex2_names <- setdiff(tex2_names,c(" \\omega_{\\delta_S} "))
+    tex2_names <- setdiff(tex2_names,c("\\omega_{\\delta_S}"))
   }else if(type=="only_S"){
 
-    tex2_names <- setdiff(tex2_names,c(" \\delta_{Ab} "," \\omega_{\\delta_S} "))
+    tex2_names <- setdiff(tex2_names,c("\\delta_{Ab}","\\omega_{\\delta_S}"))
   }
 }else if(files=="2"){
   tex2_names = c(
-    " {f_M}_2 ",
-    " \\delta_S ",
-    " \\theta_1 ",
-    " \\theta_2 ",
-    " \\alpha_1 ",
-    " \\omega_{{f_M}_1} ",
-    " \\omega_{{f_M}_2} ",
-    " \\omega_{\\theta_1} ",
-    " \\omega_{\\theta_2} ",
-    " \\sigma_{AB} ",
-    " \\sigma_{G1} "
+   "{f_M}_2",
+   "\\delta_S",
+   "\\theta_1",
+   "\\theta_2",
+   "\\alpha_1",
+   "\\omega_{{f_M}_1}",
+   "\\omega_{{f_M}_2}",
+   "\\omega_{\\theta_1}",
+   "\\omega_{\\theta_2}",
+   "\\sigma_{AB}",
+   "\\sigma_{G1}"
   )
 }else if(files=="Mult"){
   if(data=="Ab"){
     if(type=="default"){
       tex2_names = c(
-        " {f_M}_1 ",
-        " \\delta_S ",
-        " \\theta ",
-        " \\delta_{Ab} ",
-        " \\omega_{{f_M}_1} ",
-        " \\omega_\\theta ",
-        " \\sigma_{AB} "
+       "{f_M}_1",
+       "\\delta_S",
+       "\\theta",
+       "\\delta_{Ab}",
+       "\\omega_{{f_M}_1}",
+       "\\omega_\\theta",
+       "\\sigma_{AB}"
       )
     }else if(type=="poor"){
       tex2_names = c(
-        " \\delta_S ",
-        " \\theta ",
-        " \\omega_{{f_M}_1} ",
-        " \\omega_\\theta ",
-        " \\sigma_{AB} "
+       "\\delta_S",
+       "\\theta",
+       "\\omega_{{f_M}_1}",
+       "\\omega_\\theta",
+       "\\sigma_{AB}"
       )
     }else if(type=="only_S"){
       tex2_names = c(
-        " {f_M}_1 ",
-        " \\delta_S ",
-        " \\theta ",
-        " \\omega_{{f_M}_1} ",
-        " \\omega_\\theta ",
-        " \\sigma_{AB} "
+       "{f_M}_1",
+       "\\delta_S",
+       "\\theta",
+       "\\omega_{{f_M}_1}",
+       "\\omega_\\theta",
+       "\\sigma_{AB}"
       )
     }
   }else if(data=="Ab_G1_G3"){
     if(type=="default"){
       tex2_names = c(
-        " {f_M}_1 ",
-        " \\delta_S ",
-        " \\theta ",
-        " \\delta_{Ab} ",
-        " \\alpha_1 ",
-        " \\alpha_3 ",
-        " \\omega_{{f_M}_1} ",
-        " \\omega_\\theta ",
-        " \\sigma_{AB} ",
-        " \\sigma_{G1} ",
-        " \\sigma_{G3} "
+       "{f_M}_1",
+       "\\delta_S",
+       "\\theta",
+       "\\delta_{Ab}",
+       "\\alpha_1",
+       "\\alpha_3",
+       "\\omega_{{f_M}_1}",
+       "\\omega_\\theta",
+       "\\sigma_{AB}",
+       "\\sigma_{G1}",
+       "\\sigma_{G3}"
       )
     }else if(type=="only_S"){
       tex2_names = c(
-        " {f_M}_1 ",
-        " \\delta_S ",
-        " \\theta ",
-        " \\alpha_1 ",
-        " \\alpha_3 ",
-        " \\omega_{{f_M}_1} ",
-        " \\omega_\\theta ",
-        " \\sigma_{AB} ",
-        " \\sigma_{G1} ",
-        " \\sigma_{G3} "
+       "{f_M}_1",
+       "\\delta_S",
+       "\\theta",
+       "\\alpha_1",
+       "\\alpha_3",
+       "\\omega_{{f_M}_1}",
+       "\\omega_\\theta",
+       "\\sigma_{AB}",
+       "\\sigma_{G1}",
+       "\\sigma_{G3}"
       )
     }
   }else if(data=="Ab_G1"){
     if(type=="default"){
       tex2_names = c(
-        " {f_M}_1 ",
-        " \\delta_S ",
-        " \\theta ",
-        " \\delta_{Ab} ",
-        " \\alpha_1 ",
-        " \\omega_{{f_M}_1} ",
-        " \\omega_\\theta ",
-        " \\sigma_{AB} ",
-        " \\sigma_{G1} "
+       "{f_M}_1",
+       "\\delta_S",
+       "\\theta",
+       "\\delta_{Ab}",
+       "\\alpha_1",
+       "\\omega_{{f_M}_1}",
+       "\\omega_\\theta",
+       "\\sigma_{AB}",
+       "\\sigma_{G1}"
       )
     }else if(type=="only_S"){
       tex2_names = c(
-        " {f_M}_1 ",
-        " \\delta_S ",
-        " \\theta ",
-        " \\alpha_1 ",
-        " \\omega_{{f_M}_1} ",
-        " \\omega_\\theta ",
-        " \\sigma_{AB} ",
-        " \\sigma_{G1} "
+       "{f_M}_1",
+       "\\delta_S",
+       "\\theta",
+       "\\alpha_1",
+       "\\omega_{{f_M}_1}",
+       "\\omega_\\theta",
+       "\\sigma_{AB}",
+       "\\sigma_{G1}"
+      )
+    }
+  }else if(data=="Ab_G3"){
+    if(type=="default"){
+      tex2_names = c(
+       "{f_M}_1",
+       "\\delta_S",
+       "\\theta",
+       "\\delta_{Ab}",
+       "\\alpha_3",
+       "\\omega_{{f_M}_1}",
+       "\\omega_\\theta",
+       "\\sigma_{AB}",
+       "\\sigma_{G3}"
+      )
+    }else if(type=="only_S"){
+      tex2_names = c(
+       "{f_M}_1",
+       "\\delta_S",
+       "\\theta",
+       "\\alpha_3",
+       "\\omega_{{f_M}_1}",
+       "\\omega_\\theta",
+       "\\sigma_{AB}",
+       "\\sigma_{G3}"
       )
     }
   }else if(type=="default"){
     tex2_names = c(
-      " {f_M}_1 ",
-      " \\delta_S ",
-      " \\theta ",
-      " \\delta_{Ab} ",
-      " \\alpha_1 ",
-      " \\alpha_2 ",
-      " \\alpha_3 ",
-      " \\alpha_4 ",
-      " \\alpha_5 ",
-      " \\omega_{{f_M}_1} ",
-      " \\omega_\\theta ",
-      " \\sigma_{AB} ",
-      " \\sigma_{G1} ",
-      " \\sigma_{G2} ",
-      " \\sigma_{G3} ",
-      " \\sigma_{G4} ",
-      " \\sigma_{G5} "
+     "{f_M}_1",
+     "\\delta_S",
+     "\\theta",
+     "\\delta_{Ab}",
+     "\\alpha_1",
+     "\\alpha_2",
+     "\\alpha_3",
+     "\\alpha_4",
+     "\\alpha_5",
+     "\\omega_{{f_M}_1}",
+     "\\omega_\\theta",
+     "\\sigma_{AB}",
+     "\\sigma_{G1}",
+     "\\sigma_{G2}",
+     "\\sigma_{G3}",
+     "\\sigma_{G4}",
+     "\\sigma_{G5}"
     )
   }else if(type=="only_S"){
     tex2_names = c(
-      " {f_M}_1 ",
-      " \\delta_S ",
-      " \\theta ",
-      " \\alpha_1 ",
-      " \\alpha_2 ",
-      " \\alpha_3 ",
-      " \\alpha_4 ",
-      " \\alpha_5 ",
-      " \\omega_{{f_M}_1} ",
-      " \\omega_\\theta ",
-      " \\sigma_{AB} ",
-      " \\sigma_{G1} ",
-      " \\sigma_{G2} ",
-      " \\sigma_{G3} ",
-      " \\sigma_{G4} ",
-      " \\sigma_{G5} "
+     "{f_M}_1",
+     "\\delta_S",
+     "\\theta",
+     "\\alpha_1",
+     "\\alpha_2",
+     "\\alpha_3",
+     "\\alpha_4",
+     "\\alpha_5",
+     "\\omega_{{f_M}_1}",
+     "\\omega_\\theta",
+     "\\sigma_{AB}",
+     "\\sigma_{G1}",
+     "\\sigma_{G2}",
+     "\\sigma_{G3}",
+     "\\sigma_{G4}",
+     "\\sigma_{G5}"
     )
   }
 
 }else if(files=="Mu"){
   if(type=="only_S"){
     tex2_names = c(
-      " {f_M}_1 ",
-      " \\delta_S ",
-      " \\theta ",
-      " \\mu_1 ",
-      " \\mu_2 ",
-      " \\mu_3 ",
-      " \\mu_4 ",
-      " \\mu_5 ",
-      " \\alpha_1 ",
-      " \\alpha_2 ",
-      " \\alpha_3 ",
-      " \\alpha_4 ",
-      " \\alpha_5 ",
-      " \\omega_{{f_M}_1} ",
-      " \\omega_\\theta ",
-      " \\sigma_{AB} ",
-      " \\sigma_{G1} ",
-      " \\sigma_{G2} ",
-      " \\sigma_{G3} ",
-      " \\sigma_{G4} ",
-      " \\sigma_{G5} "
+     "{f_M}_1",
+     "\\delta_S",
+     "\\theta",
+     "\\mu_1",
+     "\\mu_2",
+     "\\mu_3",
+     "\\mu_4",
+     "\\mu_5",
+     "\\alpha_1",
+     "\\alpha_2",
+     "\\alpha_3",
+     "\\alpha_4",
+     "\\alpha_5",
+     "\\omega_{{f_M}_1}",
+     "\\omega_\\theta",
+     "\\sigma_{AB}",
+     "\\sigma_{G1}",
+     "\\sigma_{G2}",
+     "\\sigma_{G3}",
+     "\\sigma_{G4}",
+     "\\sigma_{G5}"
     )
   }
 }else if(files=="Mu_i"){
   if(type=="only_S"){
     tex2_names = c(
-      " {f_M}_1 ",
-      " \\delta_S ",
-      " \\theta ",
-      " \\mu_1 ",
-      " \\mu_2 ",
-      " \\mu_3 ",
-      " \\mu_4 ",
-      " \\mu_5 ",
-      " \\alpha_1 ",
-      " \\alpha_2 ",
-      " \\alpha_3 ",
-      " \\alpha_4 ",
-      " \\alpha_5 ",
-      " \\omega_{{f_M}_1} ",
-      " \\omega_\\theta ",
-      " \\omega_{mu_1} ",
-      " \\omega_{mu_2} ",
-      " \\omega_{mu_3} ",
-      " \\omega_{mu_4} ",
-      " \\omega_{mu_5} ",
-      " \\sigma_{AB} ",
-      " \\sigma_{G1} ",
-      " \\sigma_{G2} ",
-      " \\sigma_{G3} ",
-      " \\sigma_{G4} ",
-      " \\sigma_{G5} "
+     "{f_M}_1",
+     "\\delta_S",
+     "\\theta",
+     "\\mu_1",
+     "\\mu_2",
+     "\\mu_3",
+     "\\mu_4",
+     "\\mu_5",
+     "\\alpha_1",
+     "\\alpha_2",
+     "\\alpha_3",
+     "\\alpha_4",
+     "\\alpha_5",
+     "\\omega_{{f_M}_1}",
+     "\\omega_\\theta",
+     "\\omega_{mu_1}",
+     "\\omega_{mu_2}",
+     "\\omega_{mu_3}",
+     "\\omega_{mu_4}",
+     "\\omega_{mu_5}",
+     "\\sigma_{AB}",
+     "\\sigma_{G1}",
+     "\\sigma_{G2}",
+     "\\sigma_{G3}",
+     "\\sigma_{G4}",
+     "\\sigma_{G5}"
     )
   }
 }
@@ -389,14 +414,14 @@ stats_estim[,!(colnames(stats_estim) %in% c("Target Value","(NA)"))] <- apply(st
 cat("\n \n ----------- LATEX CODE FOR RESULTS -----------\n \n")
 stats_estimLTX <- huxtable::huxtable(cbind(Parameter = paste0("$",tex2_names,"$"),stats_estim),add_rownames = F)[-1,]
 stats_estimLTX <- huxtable::set_escape_contents(stats_estimLTX,FALSE)
-print(xtable::xtable(stats_estimLTX,caption = paste0("Results of estimation, with bootstrap, for Irene model with",if(data=="Ab_G1-5"){" 5 genes"}else if(data=="Ab"){" anly antibodies measured"}else if(data=="Ab_G1"){" 1 gene"}else if(data=="Ab_G1_G3"){" 2 genes"}," using ",nBoot," bootstraps and ",nrep," replicates.\n")),sanitize.text.function=function(x){x},include.rownames = F)
+print(xtable::xtable(stats_estimLTX,caption = paste0("Results of estimation, with bootstrap, for Irene model with",if(data=="Ab_G1-5"){" 5 genes"}else if(data=="Ab"){" anly antibodies measured"}else if(data=="Ab_G1" | data=="Ab_G3" ){" 1 gene"}else if(data=="Ab_G1_G3"){" 2 genes"}," using ",nBoot," bootstraps and ",nrep," replicates.\n")),sanitize.text.function=function(x){x},include.rownames = F)
 
 
 stats_estimLTX <- cbind(Parameters=tex2_names,stats_estim) %>% flextable() %>%
   bold(par="header") %>%
   align(part="header",align="center") %>%
   align(part="body",align="right") %>%
-  add_header_lines(paste0("Results of estimation, with bootstrap, for Irene model with",if(data=="Ab_G1-5"){" 5 genes"}else if(data=="Ab"){" anly antibodies measured"}else if(data=="Ab_G1"){" 1 gene"}else if(data=="Ab_G1_G3"){" 2 genes"}," using ",nBoot," bootstraps and ",nrep," replicates.\n")) %>%
+  add_header_lines(paste0("Results of estimation, with bootstrap, for Irene model with",if(data=="Ab_G1-5"){" 5 genes"}else if(data=="Ab"){" anly antibodies measured"}else if(data=="Ab_G1" | data=="Ab_G3"){" 1 gene"}else if(data=="Ab_G1_G3"){" 2 genes"}," using ",nBoot," bootstraps and ",nrep," replicates.\n")) %>%
   color(i=1,part="header",color="indianred") %>%
   fontsize(i=1,part="header",size=16)  %>%
   width(width=1,unit="cm") %>%

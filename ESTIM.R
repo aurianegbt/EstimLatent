@@ -18,24 +18,25 @@ source("estimateFS.R")
 fileNumber <- as.numeric(Slurm_env(x='SLURM_ARRAY_TASK_ID'))
 
 args = commandArgs(trailingOnly=TRUE)
-# args=c("Ab","FALSE","only_S","Mult")
+#args=c("Ab","FALSE","only_S","Mult","15")
 data <- args[1]
 bootstrap <- as.logical(args[2])
 type = args[3]
 files = args[4]
+Nbr_ind = as.numeric(args[5])
 
 ## Presentation of work :
 cat("===========================================================================\n
     - - - - - - - - - - - Work Information - - - - - - - - - - -       ")
-cat(paste0("\nWorking on file n°",fileNumber,", with",if(bootstrap){" bootstrap, "},if(type=="only_S"){"only delta_S being estimated among delta parameters"}else if(type=="default"){" with onlye delta_V being fixed among delta parameters"},", from ",files," simulation."))
+cat(paste0("\nWorking on file n°",fileNumber,", with",if(bootstrap){" bootstrap, "},if(type=="only_S"){"only delta_S being estimated among delta parameters"}else if(type=="default"){" with onlye delta_V being fixed among delta parameters"},", from ",files," simulation",if(Nbr_ind!=50){paste0(" with ",Nbr_ind," individuals")},"."))
 cat("\n===========================================================================\n")
 dir <- function(x){
   if(!dir.exists(x)){dir.create(x)}
 }
-dir(paste0("Results/Results",files,"_",data))
-dir(paste0("Results/Results",files,"_",data,"/",if(bootstrap){"bootstrap"},type))
+dir(paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",data))
+dir(paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",data,"/",if(bootstrap){"bootstrap"},type))
 
-estimateFS(fileNumber,data,bootstrap,type,files)
+estimateFS(fileNumber,data,bootstrap,type,files,Nbr_ind)
 
 cat("===========================================================================\n")
 
