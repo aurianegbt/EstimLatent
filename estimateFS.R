@@ -90,7 +90,7 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
       }
     }else if(type=="only_S"){
       setIndividualParameterVariability(delta_S=FALSE)
-      if(files %in% c("","Mult","Mu","Mu_i","MP")){
+      if(files %in% c("","Mult","Mu","Mu_i","MP","Mult2")){
         setPopulationParameterInformation(
           delta_V_pop=list(initialValue=2.7,method="FIXED"),
           delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
@@ -101,7 +101,7 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
       }
     }else if(type=="poor"){
       setIndividualParameterVariability(delta_S=FALSE)
-      if(files %in% c("","Mult","Mu","Mu_i")){
+      if(files %in% c("","Mult","Mu","Mu_i","Mult2")){
         setPopulationParameterInformation(
           fM1_pop=list(initialValue=4.5,method="FIXED"),
           delta_V_pop=list(initialValue=2.7,method="FIXED"),
@@ -258,7 +258,7 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
         }
       }else if(type=="only_S"){
         setIndividualParameterVariability(delta_S=FALSE)
-        if(files %in% c("","Mult","Mu","Mu_i","MP")){
+        if(files %in% c("","Mult","Mu","Mu_i","MP","Mult2")){
           setPopulationParameterInformation(
             delta_V_pop=list(initialValue=2.7,method="FIXED"),
             delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
@@ -269,7 +269,7 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
         }
       }else if(type=="poor"){
         setIndividualParameterVariability(delta_S=FALSE)
-        if(files %in% c("","Mult","Mu","Mu_i")){
+        if(files %in% c("","Mult","Mu","Mu_i","Mult2")){
           setPopulationParameterInformation(
             fM1_pop=list(initialValue=4.5,method="FIXED"),
             delta_V_pop=list(initialValue=2.7,method="FIXED"),
