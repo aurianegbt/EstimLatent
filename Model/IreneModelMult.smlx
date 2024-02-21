@@ -37,7 +37,7 @@ GROUPS:
 'simulationGroup1'={size=50, parameter='PopParameters', remaining={alpha_1=1, alpha_2=1, delta_Ab=1, delta_S=1, delta_V=1, sigma_1=1, sigma_2=1, sigma_Ab=1}, outputs={'yAB', 'yG1', 'yG2', 'yG3', 'yG4', 'yG5'}}
 
 SETTINGS:
-nbReplicates=300
+nbReplicates=100
 
 [EXPLORATION]
 GROUPS:
