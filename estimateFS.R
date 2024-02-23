@@ -1,28 +1,32 @@
 estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50){
-  temporaryDirectory = paste0("/beegfs/agabaut/tmp",fileNumber,"_",data)
+  temporaryDirectory = paste0("/beegfs/agabaut/tmp",fileNumber,"_",paste0(data,collapse="_"))
   if(dir.exists(temporaryDirectory)){unlink(temporaryDirectory,recursive = T)}
   dir.create(temporaryDirectory)
 
-  if(Nbr_ind==50){
-    pathToSim = paste0("Model/IreneModel",files,"/Simulation/simulatedData_",data,".csv")
-  }else if(Nbr_ind==15){
-    pathToSim = paste0("Model/IreneModel",files,"/Simulation/simulatedData15_",data,".csv")
+
+  sim.list = lapply(data,FUN=function(d){read.csv(paste0("Model/IreneModel",files,"/Simulation/simulation_y",d,".txt"))})
+
+  sim <- data.frame()
+  for(d in 1:length(data)){
+    sim <- sim %>% rbind(sim.list[[d]] %>% mutate(obsid = paste0("y",data[d]),.before = group) %>% rename(obs = paste0("y",data[d]))
+      )
   }
 
-
-  sim = read.csv(pathToSim) %>%
+  sim = sim %>%
     filter(rep==fileNumber) %>%
-    select(ID,TIME,obs,obsid)
+    filter(if(Nbr_ind==50){group=="simulationGroup1"}else if(Nbr_ind==15){group=="simulationGroup2"}) %>%
+    mutate(id=if(Nbr_ind==15){id-50}else{id}) %>%
+    select(-group,-rep)
 
-  if(file.exists(paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))){
-    load(paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
+  if(file.exists(paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",paste0(data,collapse="_"),"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))){
+    load(paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",paste0(data,collapse="_"),"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
     doRes = !exists("res")
     if(exists("resBoot")){
-      bootMISS = setdiff(1:200,as.numeric(stringr::str_remove_all(names(resBoot),"boot_")))
+      bootMISS = setdiff(1:500,as.numeric(stringr::str_remove_all(names(resBoot),"boot_")))
     }
   }else{
     doRes=TRUE
-    bootMISS=1:200
+    bootMISS=1:500
   }
 
   ## Normal part
@@ -33,107 +37,40 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
 
     newProject(data = list(dataFile = paste0(temporaryDirectory,"/sim.txt"),
                            headerTypes = c("id","time","observation","obsid")),
-               modelFile = paste0("Files/model_generated",files,"_",data,".txt"))
+               modelFile = paste0("Files/model_generated_",paste0(data,collapse="_"),".txt"))
 
     # individual variability
     setIndividualParameterVariability(delta_V=FALSE,delta_Ab=FALSE) # never
-    #mu
-    if(files=="Mu"){
-      setIndividualParameterVariability(mu_1=F,mu_2=F,mu_3=F,mu_4=F,mu_5=F) # never
-    }
-    # alpha
-    if(data!="Ab"){
-      if(files=="" | files=="2" | data %in% c("Ab_G1","Ab_G1_G3","Ab_G2","Ab_G1_G2")){
-        if(data=="Ab_G1"){
-          setIndividualParameterVariability(alpha_1=FALSE)
-        }else if(data=="Ab_G2"){
-          setIndividualParameterVariability(alpha_2=FALSE)
-        }else if(data=="Ab_G3"){
-          setIndividualParameterVariability(alpha_3=FALSE)
-        }else if(data=="Ab_G1_G2"){
-          setIndividualParameterVariability(alpha_1=FALSE,alpha_2=FALSE)
-        }else if(data=="Ab_G1_G3"){
-          setIndividualParameterVariability(alpha_1=FALSE,alpha_3=FALSE)
-        }
-      }else if(files %in% c("Mult","Mu","Mu_i")){
-        setIndividualParameterVariability(alpha_1=FALSE,alpha_2=FALSE,alpha_3=F,alpha_4=F,alpha_5=F)
-        if(files=="Mu"){
-          setIndividualParameterVariability(mu_1=FALSE,mu_2=FALSE,mu_3=F,mu_4=F,mu_5=F)
-        }
-      }
+    # alpha and mu
+    for(d in data[stringr::str_detect(data,"G")]){
+      d <- stringr::str_remove(d,"G")
+      eval(parse(text=paste0("setIndividualParameterVariability(alpha_",d,"=FALSE)")))
+      # if(files == "Mu"){
+      #   eval(parse(text="setIndividualParameterVariability(mu",d,"=F)"))
+      # }
     }
     # delta
-    if(type=="default"){
-      setIndividualParameterVariability(delta_S=FALSE)
-      setPopulationParameterInformation(
-        delta_V_pop=list(initialValue=2.7,method="FIXED"))
-    }else if(type=="default_S"){
-      setPopulationParameterInformation(
-        delta_V_pop=list(initialValue=2.7,method="FIXED"))
-    }else if(type=="fixed_delta"){
-      setIndividualParameterVariability(delta_S=FALSE)
-      if(files %in% c("","Mult","Mu","Mu_i")){
-        setPopulationParameterInformation(
-          delta_V_pop=list(initialValue=2.7,method="FIXED"),
-          delta_S_pop=list(initialValue=0.01,method="FIXED"),
-          delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
-      }else if(files=="2"){
-        setPopulationParameterInformation(
-          delta_V_pop=list(initialValue=2.7,method="FIXED"),
-          delta_S_pop=list(initialValue=0.0322,method="FIXED"),
-          delta_Ab_pop=list(initialValue=0.08,method="FIXED"))
-      }else if(files=="MP"){
-        setPopulationParameterInformation(
-          delta_V_pop=list(initialValue=2.7,method="FIXED"),
-          delta_S_pop=list(initialValue=0.008992836,method="FIXED"),
-          delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
-      }
-    }else if(type=="only_S"){
-      setIndividualParameterVariability(delta_S=FALSE)
-      if(files %in% c("","Mult","Mu","Mu_i","MP","Mult2")){
-        setPopulationParameterInformation(
-          delta_V_pop=list(initialValue=2.7,method="FIXED"),
-          delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
-      }else if(files=="2"){
-        setPopulationParameterInformation(
-          delta_V_pop=list(initialValue=2.7,method="FIXED"),
-          delta_Ab_pop=list(initialValue=0.08,method="FIXED"))
-      }
-    }else if(type=="poor"){
-      setIndividualParameterVariability(delta_S=FALSE)
-      if(files %in% c("","Mult","Mu","Mu_i","Mult2")){
-        setPopulationParameterInformation(
-          fM1_pop=list(initialValue=4.5,method="FIXED"),
-          delta_V_pop=list(initialValue=2.7,method="FIXED"),
-          delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
-      }else if(files=="2"){
-        setPopulationParameterInformation(
-          fM1_pop=list(initialValue=4.5,method="FIXED"),
-          delta_V_pop=list(initialValue=2.7,method="FIXED"),
-          delta_Ab_pop=list(initialValue=0.08,method="FIXED"))
-      }else if(files=="MP"){
-        setPopulationParameterInformation(
-          fM1_pop=list(initialValue=4.132851589,method="FIXED"),
-          delta_V_pop=list(initialValue=2.7,method="FIXED"),
-          delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
-      }
+    setPopulationParameterInformation(delta_V_pop=list(initialValue=2.7,method="FIXED"))
+    setIndividualParameterVariability(delta_S=FALSE)
+    if(type=="only_S"){
+      setPopulationParameterInformation(delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
     }
+    # else if(type=="poor"){
+    #   if(files %in% c("Mult","Mu","Mu_i")){
+    #     setPopulationParameterInformation(
+    #       fM1_pop=list(initialValue=4.5,method="FIXED"))
+    #   }else if(files=="MP"){
+    #     setPopulationParameterInformation(
+    #       fM1_pop=list(initialValue=4.132851589,method="FIXED"))
+    #   }
+    # }
 
     # Error Model
-    if(data=="Ab"){
+    if("AB" %in% data){
       setErrorModel(yyAB="constant")
-    }else if(data=="Ab_G1"){
-      setErrorModel(yyAB="constant",yyG1="constant")
-    }else if(data=="Ab_G1_G3"){
-      setErrorModel(yyAB="constant",yyG1="constant",yyG3="constant")
-    }else if(data=="Ab_G1_G2"){
-      setErrorModel(yyAB="constant",yyG1="constant",yyG2="constant")
-    }else if(data=="Ab_G2"){
-      setErrorModel(yyAB="constant",yyG2="constant")
-    }else if(data=="Ab_G3"){
-      setErrorModel(yyAB="constant",yyG3="constant")
-    }else if(data=="Ab_G1-5"){
-      setErrorModel(yyAB="constant",yyG1="constant",yyG2="constant",yyG3="constant",yyG4="constant",yyG5="constant")
+    }
+    for(d in data[stringr::str_detect(data,"G")]){
+      eval(parse(text=paste0("setErrorModel(yy",d,"='constant')")))
     }
 
     # Initialization (plafrim form)
@@ -154,28 +91,27 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
     runScenario()
 
     # Results format
-    if(type=="default" | type=="default_S"){
+    if(type=="default"){
       keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop"))
-    }else if(type=="fixed_delta"){
-      keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop","delta_S_pop"))
     }else if(type=="only_S"){
       keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop"))
-    }else if(type=="poor"){
-      keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop","fM1_pop"))
     }
-    if(files=="2"){
-      keep <- setdiff(keep,"fM1_pop")
-    }
+    # else if(type=="poor"){
+    #   keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop","fM1_pop"))
+    # }
 
     EstimatedPopulationParameters = getEstimatedPopulationParameters()[keep]
     EstimatedStandardErrors = getEstimatedStandardErrors()[[1]]
 
 
     res = data.frame(Parameters = EstimatedPopulationParameters,StandardError = EstimatedStandardErrors$se)
-    if(data=="Ab"){
+    if(identical("AB",data)){
       rownames(res)[which(rownames(res)=="a")] <- "sigma_Ab"
     }else{
       rownames(res) <-  stringr::str_replace_all(rownames(res),"ay","sigma_")
+      if("sigma_AB" %in% rownames(res)){
+        rownames(res)[which(rownames(res)=="sigma_AB")] <- "sigma_Ab"
+      }
     }
   }
 
@@ -193,115 +129,48 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
 
       # project
       simi <- data.frame()
-      IDi = sample(unique(sim$ID),replace=TRUE)
+      IDi = sample(unique(sim$id),replace=TRUE)
       for(k in 1:length(IDi)){
-        simi <- rbind(simi,sim[sim$ID==IDi[k],] %>% mutate(ID=k) %>% mutate(original_ID = IDi[k],.after="ID"))
+        simi <- rbind(simi,sim[sim$id==IDi[k],] %>% mutate(id=k) %>% mutate(original_id = IDi[k],.after="id"))
       }
       write.csv(simi,file=paste0(temporaryDirectory,"/sim_",i,".txt"),quote = FALSE,row.names = FALSE)
 
       newProject(data = list(dataFile = paste0(temporaryDirectory,"/sim_",i,".txt"),
                              headerTypes = c("id","ignore","time","observation","obsid")),
-                 modelFile = paste0("Files/model_generated",files,"_",data,".txt"))
+                 modelFile = paste0("Files/model_generated_",paste0(data,collapse="_"),".txt"))
 
       # individual variability
       setIndividualParameterVariability(delta_V=FALSE,delta_Ab=FALSE) # never
-      #mu
-      if(files=="Mu"){
-        setIndividualParameterVariability(mu_1=F,mu_2=F,mu_3=F,mu_4=F,mu_5=F) # never
-      }
-      # alpha
-      if(data!="Ab"){
-        if(files=="" | files=="2" | data %in% c("Ab_G1","Ab_G1_G3","Ab_G2","Ab_G1_G2")){
-          if(data=="Ab_G1"){
-            setIndividualParameterVariability(alpha_1=FALSE)
-          }else if(data=="Ab_G2"){
-            setIndividualParameterVariability(alpha_2=FALSE)
-          }else if(data=="Ab_G3"){
-            setIndividualParameterVariability(alpha_3=FALSE)
-          }else if(data=="Ab_G1_G2"){
-            setIndividualParameterVariability(alpha_1=FALSE,alpha_2=FALSE)
-          }else if(data=="Ab_G1_G3"){
-            setIndividualParameterVariability(alpha_1=FALSE,alpha_3=FALSE)
-          }
-        }else if(files %in% c("Mult","Mu","Mu_i")){
-          setIndividualParameterVariability(alpha_1=FALSE,alpha_2=FALSE,alpha_3=F,alpha_4=F,alpha_5=F)
-          if(files=="Mu"){
-            setIndividualParameterVariability(mu_1=FALSE,mu_2=FALSE,mu_3=F,mu_4=F,mu_5=F)
-          }
-        }
+      # alpha and mu
+      for(d in data[stringr::str_detect(data,"G")]){
+        d <- stringr::str_remove(d,"G")
+        eval(parse(text=paste0("setIndividualParameterVariability(alpha_",d,"=FALSE)")))
+        # if(files == "Mu"){
+        #   eval(parse(text="setIndividualParameterVariability(mu",d,"=F)"))
+        # }
       }
       # delta
-      if(type=="default"){
-        setIndividualParameterVariability(delta_S=FALSE)
-        setPopulationParameterInformation(
-          delta_V_pop=list(initialValue=2.7,method="FIXED"))
-      }else if(type=="default_S"){
-        setPopulationParameterInformation(
-          delta_V_pop=list(initialValue=2.7,method="FIXED"))
-      }else if(type=="fixed_delta"){
-        setIndividualParameterVariability(delta_S=FALSE)
-        if(files %in% c("","Mult","Mu","Mu_i")){
-          setPopulationParameterInformation(
-            delta_V_pop=list(initialValue=2.7,method="FIXED"),
-            delta_S_pop=list(initialValue=0.01,method="FIXED"),
-            delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
-        }else if(files=="2"){
-          setPopulationParameterInformation(
-            delta_V_pop=list(initialValue=2.7,method="FIXED"),
-            delta_S_pop=list(initialValue=0.0322,method="FIXED"),
-            delta_Ab_pop=list(initialValue=0.08,method="FIXED"))
-        }else if(files=="MP"){
-          setPopulationParameterInformation(
-            delta_V_pop=list(initialValue=2.7,method="FIXED"),
-            delta_S_pop=list(initialValue=0.008992836,method="FIXED"),
-            delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
-        }
-      }else if(type=="only_S"){
-        setIndividualParameterVariability(delta_S=FALSE)
-        if(files %in% c("","Mult","Mu","Mu_i","MP","Mult2")){
-          setPopulationParameterInformation(
-            delta_V_pop=list(initialValue=2.7,method="FIXED"),
-            delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
-        }else if(files=="2"){
-          setPopulationParameterInformation(
-            delta_V_pop=list(initialValue=2.7,method="FIXED"),
-            delta_Ab_pop=list(initialValue=0.08,method="FIXED"))
-        }
-      }else if(type=="poor"){
-        setIndividualParameterVariability(delta_S=FALSE)
-        if(files %in% c("","Mult","Mu","Mu_i","Mult2")){
-          setPopulationParameterInformation(
-            fM1_pop=list(initialValue=4.5,method="FIXED"),
-            delta_V_pop=list(initialValue=2.7,method="FIXED"),
-            delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
-        }else if(files=="2"){
-          setPopulationParameterInformation(
-            fM1_pop=list(initialValue=4.5,method="FIXED"),
-            delta_V_pop=list(initialValue=2.7,method="FIXED"),
-            delta_Ab_pop=list(initialValue=0.08,method="FIXED"))
-        }else if(files=="MP"){
-          setPopulationParameterInformation(
-            fM1_pop=list(initialValue=4.132851589,method="FIXED"),
-            delta_V_pop=list(initialValue=2.7,method="FIXED"),
-            delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
-        }
+      setPopulationParameterInformation(delta_V_pop=list(initialValue=2.7,method="FIXED"))
+      setIndividualParameterVariability(delta_S=FALSE)
+      if(type=="only_S"){
+        setPopulationParameterInformation(delta_Ab_pop=list(initialValue=0.03,method="FIXED"))
       }
+      # else if(type=="poor"){
+      #   if(files %in% c("Mult","Mu","Mu_i")){
+      #     setPopulationParameterInformation(
+      #       fM1_pop=list(initialValue=4.5,method="FIXED"))
+      #   }else if(files=="MP"){
+      #     setPopulationParameterInformation(
+      #       fM1_pop=list(initialValue=4.132851589,method="FIXED"))
+      #   }
+      # }
 
       # Error Model
-      if(data=="Ab"){
+      if("AB" %in% data){
         setErrorModel(yyAB="constant")
-      }else if(data=="Ab_G1"){
-        setErrorModel(yyAB="constant",yyG1="constant")
-      }else if(data=="Ab_G1_G3"){
-        setErrorModel(yyAB="constant",yyG1="constant",yyG3="constant")
-      }else if(data=="Ab_G1_G2"){
-        setErrorModel(yyAB="constant",yyG1="constant",yyG2="constant")
-      }else if(data=="Ab_G2"){
-        setErrorModel(yyAB="constant",yyG2="constant")
-      }else if(data=="Ab_G3"){
-        setErrorModel(yyAB="constant",yyG3="constant")
-      }else if(data=="Ab_G1-5"){
-        setErrorModel(yyAB="constant",yyG1="constant",yyG2="constant",yyG3="constant",yyG4="constant",yyG5="constant")
+      }
+      for(d in data[stringr::str_detect(data,"G")]){
+        eval(parse(text=paste0("setErrorModel(yy",d,"='constant')")))
       }
 
       # Initialization (plafrim form)
@@ -322,29 +191,27 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
       runScenario()
 
       # Results format
-      if(type=="default" | type=="default_S"){
+      if(type=="default"){
         keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop"))
-      }else if(type=="fixed_delta"){
-        keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop","delta_S_pop"))
       }else if(type=="only_S"){
         keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop"))
-      }else if(type=="poor"){
-        keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop","fM1_pop"))
       }
-      if(files=="2"){
-        keep <- setdiff(keep,"fM1_pop")
-      }
+      # else if(type=="poor"){
+      #   keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop","fM1_pop"))
+      # }
 
       EstimatedPopulationParameters = getEstimatedPopulationParameters()[keep]
       EstimatedStandardErrors = getEstimatedStandardErrors()[[1]]
 
       resaux = data.frame(Parameters = EstimatedPopulationParameters,StandardError = EstimatedStandardErrors$se)
-      if(data=="Ab"){
+      if(identical("AB",data)){
         rownames(resaux)[which(rownames(resaux)=="a")] <- "sigma_Ab"
       }else{
         rownames(resaux) <-  stringr::str_replace_all(rownames(resaux),"ay","sigma_")
+        if("sigma_AB" %in% rownames(resaux)){
+          rownames(resaux)[which(rownames(resaux)=="sigma_AB")] <- "sigma_Ab"
+        }
       }
-
       resaux
     })
     stopCluster(cl)
@@ -354,8 +221,8 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
 
   unlink(temporaryDirectory,recursive=TRUE)
   if(bootstrap){
-    save(res,resBoot,file=paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
+    save(res,resBoot,file=paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",paste0(data,collapse=""),"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
   }else{
-    save(res,file=paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",data,"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
+    save(res,file=paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",paste0(data,collapse="_"),"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
   }
 }
