@@ -221,7 +221,7 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
 
   unlink(temporaryDirectory,recursive=TRUE)
   if(bootstrap){
-    save(res,resBoot,file=paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",paste0(data,collapse=""),"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
+    save(res,resBoot,file=paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",paste0(data,collapse="_"),"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
   }else{
     save(res,file=paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",paste0(data,collapse="_"),"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
   }
