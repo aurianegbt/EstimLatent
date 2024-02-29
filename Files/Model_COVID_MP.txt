@@ -1,0 +1,48 @@
+[INDIVIDUAL]
+input={fM1_pop,omega_fM1,theta_pop, omega_theta}
+
+DEFINITION:
+fM1 = {distribution=lognormal, typical=fM1_pop, sd=omega_fM1}
+theta = {distribution=lognormal, typical=theta_pop, sd=omega_theta}
+
+[LONGITUDINAL]
+input = {fM1,delta_V,delta_S,theta,delta_Ab,alpha_1,alpha_2,sigma_Ab,sigma_1,sigma_2}
+
+EQUATION:
+t_0 = 0
+t_1 = 21
+S_0 = 1
+Ab_0 = 0.5
+
+odeType = stiff 
+
+if t<t_1
+	C = 1
+    ttilde=t_0
+else
+	C = fM1
+    ttilde=t_1
+end
+
+
+ddt_S = C*exp(-delta_V*(t-ttilde))-delta_S * S
+ddt_Ab = theta * S -delta_Ab *Ab 
+
+if t==0 
+G1 = 1
+G2 = 1
+else
+G1 = alpha_1 * S  
+G2 = alpha_2 * S 
+end 
+tAb = log10(Ab)
+
+OUTPUT:
+output ={tAb} 
+
+
+
+DEFINITION:
+yAB = {distribution=normal, prediction=tAb, errorModel=constant(sigma_Ab)}
+yG1 = {distribution=normal, prediction=G1, errorModel=constant(sigma_1)}
+yG2 = {distribution=normal, prediction=G2, errorModel=constant(sigma_2)}

@@ -1,0 +1,35 @@
+[LONGITUDINAL]
+input = {fM1,delta_V,delta_S,theta,delta_Ab,alpha_2}
+
+EQUATION:
+t_0 = 0
+t_1 = 21
+S_0 = 1
+Ab_0 = 0.5
+
+odeType = stiff
+
+if t<t_1
+	C = 1
+    ttilde=t_0
+else
+	C = fM1
+    ttilde=t_1
+end
+
+
+ddt_S = C*exp(-delta_V*(t-ttilde))-delta_S * S
+ddt_Ab = theta * S -delta_Ab *Ab
+
+if t==0
+G2 = 1
+else
+G2 = alpha_2 * S
+end
+tAb = log10(Ab)
+
+OUTPUT:
+output ={tAb, G2}
+
+
+
