@@ -1,14 +1,14 @@
 library(dplyr)
 library(flextable)
 ## DATA INFORMATION
-data = c("AB","G2")
+data = c("AB")
 type="default"
 files="Mult"
 Nind = "15"
 
 load(paste0("Results/Results",files,if(Nind!=50){Nind},"_",paste0(data,collapse="_"),"/bootstrap",type,"/estim_1.RData"))
 # nBoot = length(resBoot)
-nBoot = 250
+nBoot = 200
 
 # nrep = length(list.files(paste0("Results/Results",files,"_",paste0(data,collapse="_"),"/bootstrap",type)))
 nrep = 100
@@ -161,12 +161,18 @@ stats_estim[,!(colnames(stats_estim) %in% c("Target Value","(NA)"))] <- apply(st
 
 
 # cat("\n \n ----------- LATEX CODE FOR RESULTS -----------\n \n")
+dir <- function(d){if(!dir.exists(d)){dir.create(d)}}
+dir("Results/Table_Results")
+dir(paste0("Results/Table_Results/",files,"/"))
+dir(paste0("Results/Table_Results/",files,"/",paste0(data,collapse = "_")))
+pathToResults = paste0("Results/Table_Results/",files,"/",paste0(data,collapse = "_"),"/bootstrap",type,"_",Nind,"ind")
+
 stats_estimLTX <- huxtable::huxtable(cbind(Parameter = paste0("$",tex2_names,"$"),stats_estim),add_rownames = F)[-1,]
 stats_estimLTX <- huxtable::set_escape_contents(stats_estimLTX,FALSE)
 texTable = xtable::xtable(stats_estimLTX,caption = paste0("Results of estimation, with bootstrap, for Irene model with antibody Ab, ",if("G1" %in% data){" and a high noised gene,"}else if("G2" %in% data){" and a low noised gene,"}," using ",nBoot," bootstraps and ",nrep," replicates, with ",Nind," individuals.\n"))
 # print(texTable,sanitize.text.function=function(x){x},include.rownames = F)
 latex_code <- capture.output(print(texTable,sanitize.text.function=function(x){x},include.rownames = F))[-c(1,2)]
-writeLines(latex_code, paste0("Results/Results",files,if(Nind!=50){Nind},"_",paste0(data,collapse="_"),"/bootstrap",type,".txt"))
+writeLines(latex_code, paste0(pathToResults,".txt"))
 
 
 
@@ -187,7 +193,7 @@ stats_estimLTX <- cbind(Parameters=tex2_names,stats_estim) %>% flextable() %>%
   vline(j=1,part="header", border = fp_border_default( width = 1))
 
 
-  save_as_html(stats_estimLTX, path = paste0("Results/Results",files,if(Nind!=50){Nind},"_",paste0(data,collapse="_"),"/bootstrap",type,".html"),expand=20000)
-  webshot2::webshot(url=paste0("Results/Results",files,if(Nind!=50){Nind},"_",paste0(data,collapse="_"),"/bootstrap",type,".html"),file=paste0("Results/Results",files,if(Nind!=50){Nind},"_",paste0(data,collapse="_"),"/bootstrap",type,".png"),quiet=TRUE)
-  unlink(paste0("Results/Results",files,if(Nind!=50){Nind},"_",paste0(data,collapse="_"),"/bootstrap",type,".html"))
+  save_as_html(stats_estimLTX, path = paste0(pathToResults,".html"),expand=20000)
+  webshot2::webshot(url=paste0(pathToResults,".html"),file=paste0(pathToResults,".png"),quiet=TRUE)
+  unlink(paste0(pathToResults,".html"))
 
