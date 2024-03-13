@@ -1,0 +1,53 @@
+[INDIVIDUAL]
+input={fM1_pop,omega_fM1,theta_pop, omega_theta}
+
+DEFINITION:
+fM1 = {distribution=lognormal, typical=fM1_pop, sd=omega_fM1}
+theta = {distribution=lognormal, typical=theta_pop, sd=omega_theta}
+
+[LONGITUDINAL]
+input = {fM1,delta_V,delta_S,theta,delta_Ab,alpha,k,sigma_Ab,sigma_G1,sigma_G2}
+
+EQUATION:
+t_0 = 0
+t_1 = 21
+S_0 = 1/alpha
+Ab_0 = 0.5
+F1_0 = 0
+F2_0 = 0
+F3_0 = 0
+F4_0 = 0
+F5_0 = 0
+F6_0 = 0
+
+odeType = stiff
+
+
+if t<t_1
+	C = 1
+    ttilde=t_0
+else
+	C = fM1
+    ttilde=t_1
+end
+
+
+ddt_S = C*exp(-delta_V*(t-ttilde)) -k*S
+ddt_F1 = k*S - k*F1
+ddt_F2 = k*F1 - k*F2
+ddt_F3 = k*F2 - k*F3
+ddt_F4 = k*F3 - k*F4
+ddt_F5 = k*F4 - k*F5
+ddt_F6 = k*F5 - delta_S * F6
+ddt_Ab = theta * F6 -delta_Ab *Ab
+
+G = alpha * (S+F1+F2+F3+F4+F5+F6)
+tAb = log10(Ab)
+
+OUTPUT:
+output ={tAb, G}
+
+DEFINITION:
+yAB = {distribution=normal, prediction=tAb, errorModel=constant(sigma_Ab)}
+yG1 = {distribution=normal, prediction=G, errorModel=constant(sigma_G1)}
+yG2 = {distribution=normal, prediction=G, errorModel=constant(sigma_G2)}
