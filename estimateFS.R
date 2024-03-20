@@ -22,11 +22,11 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
     load(paste0("Results/Results",files,if(Nbr_ind!=50){Nbr_ind},"_",paste0(data,collapse="_"),"/",if(bootstrap){"bootstrap"},type,"/estim_",fileNumber,".RData"))
     doRes = !exists("res")
     if(exists("resBoot")){
-      bootMISS = setdiff(1:500,as.numeric(stringr::str_remove_all(names(resBoot),"boot_")))
+      bootMISS = setdiff(1:200,as.numeric(stringr::str_remove_all(names(resBoot),"boot_")))
     }
   }else{
     doRes=TRUE
-    bootMISS=1:500
+    bootMISS=1:200
   }
 
   ## Normal part
@@ -37,10 +37,14 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
 
     newProject(data = list(dataFile = paste0(temporaryDirectory,"/sim.txt"),
                            headerTypes = c("id","time","observation","obsid")),
-               modelFile = paste0("Files/model_generated_",paste0(data,collapse="_"),".txt"))
+               modelFile = paste0("Files/model_generated",if(files=="Comp"){"Comp"},"_",paste0(data,collapse="_"),".txt"))
 
     # individual variability
     setIndividualParameterVariability(delta_V=FALSE,delta_Ab=FALSE) # never
+    if(files=="Comp"){
+      setIndividualParameterVariability(k=FALSE)
+      setPopulationParameterInformation(k_pop=list(initialValue=0.25,method="FIXED"))
+    }
     # alpha and mu
     for(d in data[stringr::str_detect(data,"G")]){
       d <- stringr::str_remove(d,"G")
@@ -96,9 +100,9 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
     }else if(type=="only_S"){
       keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop"))
     }
-    # else if(type=="poor"){
-    #   keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop","fM1_pop"))
-    # }
+    if(files=="Comp"){
+      keep = setdiff(keep,"k_pop")
+    }
 
     EstimatedPopulationParameters = getEstimatedPopulationParameters()[keep]
     EstimatedStandardErrors = getEstimatedStandardErrors()[[1]]
@@ -137,10 +141,14 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
 
       newProject(data = list(dataFile = paste0(temporaryDirectory,"/sim_",i,".txt"),
                              headerTypes = c("id","ignore","time","observation","obsid")),
-                 modelFile = paste0("Files/model_generated_",paste0(data,collapse="_"),".txt"))
+                 modelFile = paste0("Files/model_generated",if(files=="Comp"){"Comp"},"_",paste0(data,collapse="_"),".txt"))
 
       # individual variability
       setIndividualParameterVariability(delta_V=FALSE,delta_Ab=FALSE) # never
+      if(files=="Comp"){
+        setIndividualParameterVariability(k=FALSE)
+        setPopulationParameterInformation(k_pop=list(initialValue=0.25,method="FIXED"))
+      }
       # alpha and mu
       for(d in data[stringr::str_detect(data,"G")]){
         d <- stringr::str_remove(d,"G")
@@ -196,6 +204,10 @@ estimateFS <- function(fileNumber,data,bootstrap=FALSE,type,files="",Nbr_ind=50)
       }else if(type=="only_S"){
         keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop"))
       }
+      if(files=="Comp"){
+        keep = setdiff(keep,"k_pop")
+      }
+
       # else if(type=="poor"){
       #   keep = setdiff(names(getEstimatedPopulationParameters()),c("delta_V_pop","delta_Ab_pop","fM1_pop"))
       # }
